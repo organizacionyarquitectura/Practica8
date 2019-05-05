@@ -1,2 +1,0 @@
-# Practica8
-Excepciones

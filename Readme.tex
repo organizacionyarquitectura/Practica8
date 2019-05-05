@@ -1,0 +1,94 @@
+
+% tipo de documento
+\documentclass{article}
+
+% formato de página
+\usepackage[margin=1.5cm, letterpaper]{geometry}
+
+% idioma de los macros
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+
+% vínculos
+\usepackage{hyperref}
+
+% manejo de ecuaciones
+\usepackage{amsmath}
+
+% manejo de figuras
+\usepackage{graphicx}
+\usepackage{float}
+
+% texto del documento
+\begin{document}
+    \title{
+        Organización y Arquitectura de Computadoras \\
+        Práctica 8: Excepciones \\
+    }
+    \date{
+        5 de mayo del 2019
+    }
+    \author{
+        Sandra del Mar Soto Corderi \\
+        Edgar Quiroz Castañeda
+    }
+    \maketitle
+
+    \section{Preguntas}
+    \begin{enumerate}
+    
+    %1
+    \item {
+    En un procesador, ¿qué es el modo supervisor? ¿Qué funciones tiene?
+    ¿Cómo se implementa?\\
+    
+    El modo supervisor es un modo de ejecución en un dispositivo en el que todas las instrucciones, incluidas las privilegiadas, pueden ser ejecutadas por el procesador.\cite{supervisor}\\
+    
+    El modo supervisor tiene acceso completo a todos los componentes de un sistema y está mayormente reservado para el sistema operativo (SO), ya que las rutinas del SO se ejecutan en modo supervisor.  Permite que los programas iniciales ejecutados en la computadora, principalmente el gestor de arranque, BIOS y SO, tengan acceso ilimitado al hardware. También es el modo seleccionado por el núcleo del sistema operativo para tareas de bajo nivel que requieren acceso de hardware sin restricciones. Igualmente es capaz de interrumpir la activación, desactivación, devolución y carga del estado del procesador. Así como puede cambiar, acceder y crear espacios de direcciones de memoria.\cite{supervisor}\\
+
+	El modo supervisor es el modo automático que se selecciona cuando se enciende una computadora. La transición de usuario a supervisor se realiza mediante una instrucción del procesador, ya sea INT (para elevar una interrupción por software) o SYSCALL (para invocar a una llamada al sistema).\cite{sevilla}\\
+
+	}
+
+	%2
+	\item {
+	¿Cuál es la relación entre una llamada al sistema y una excepción? \\
+	
+	Los programas del usuario invocan las llamadas al sistema ejecutando la instrucción syscall de MIPS, lo que hace que se invoque el controlador de excepciones del kernel. El kernel primero debe indicar al procesador dónde está el controlador de excepciones y el controlador de excepciones del kernel lee el valor del registro de causa del procesador, determina el proceso actual e invoca la excepción en el proceso actual, pasando la causa de la excepción como un argumento.\cite{syscall} \\
+	
+	}
+	%3
+	\item {
+	¿Qué es un vector de interrupciones?\\
+	
+	Una interrupción en microprocesadores, es como lo dice su palabra una interrupción que se realiza al proceso que esta realizando en ese momento el procesador de tal manera que el procesador debe dejar la labor que estaba ejecutando para atender la interrupción solicitante, una vez atendida puede retornar al proceso donde lo dejo.	Ademas de poseer memoria de programa y de datos, cada una de estas interrupciones posee una dirección de memoria de programa a la cual se direcciona para ejecutar el programa que atenderá dicha interrupción. El  vector que almacena estas direcciones se le llama vector de interrupciones.\cite{vector}\\
+	
+	}
+    \end{enumerate}
+
+ \begin{thebibliography}{1}
+	\bibitem{supervisor} 
+	\textit{What is Supervisor Mode? - Definition from Techopedia. (n.d.). [Online]}. Disponible: 
+	\url{https://www.techopedia.com/definition/22400/supervisor-mode}.
+	[Consultado: 5-Mayo-2019].
+	
+	\bibitem{sevilla} 
+	\textit{Modos de operación de la CPU. (n.d.). [Online]}. Disponible: 
+	\url{https://1984.lsi.us.es/wiki-ssoo/index.php/Modos_de_operación_de_la_CPU}.
+	[Consultado: 5-Mayo-2019].
+	
+	
+	\bibitem{syscall} 
+	\textit{ System calls and exception handling [Online]}. Disponible: 
+	\url{http://www.cas.mcmaster.ca/~rzheng/course/Nachos_Tutorial/nachossu18.html }.
+	[Consultado: 5-Mayo-2019].
+	
+	\bibitem{vector} 
+	\textit{11.- Interrupciones - Curso de Microcontroladores 8051. (n.d.). [Online]}. Disponible: 
+	\url{ https://sites.google.com/site/cursodemicrocontroladores8051/inicio/teoria/11-interrupciones}.
+	[Consultado: 5-Mayo-2019].
+	
+	
+\end{thebibliography}
+
+\end{document}
