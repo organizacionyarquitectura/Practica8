@@ -1,3 +1,4 @@
+# Práctica 8
 # Calculadora posfija con exepciones
 
 # macros generales
@@ -66,6 +67,43 @@ chEnd:	beqz	$t1 exit
 nEx:	
 	.end_macro
 	
+# Realiza el parseo y la ejecución de la operación
+	.macro proccess(%s)
+	move	$s1 %s
+	move	$s7 $sp
+nPCh:	lw	$t0 ($s1)
+	beqz	$t0 prEnd
+	beq	$t0 '+' sum
+	beq	$t0 '-' dif
+	beq	$t0 '*' mu
+	beq	$t0 '/' di
+	getNum
+	j nPCh
+sum:
+	pop($t0)
+	pop($t1)
+	add $t0 $t0 $t1
+	push($t0)
+dif:
+	pop($t0)
+	pop($t1)
+	add $t0 $t0 $t1
+	push($t0)
+mu:
+	pop($t0)
+	pop($t1)
+	add $t0 $t0 $t1
+	push($t0)
+di:
+	pop($t0)
+	pop($t1)
+	add $t0 $t0 $t1
+	push($t0)
+	j nPCh
+prEnd:	pop($v0)
+	tne	$sp $s7
+	.end_macro
+	
 # variables
 	.data
 bienv:	.asciiz "Calculadora posfija\n"
@@ -86,12 +124,13 @@ nextQ:	la	$a0 inst
 	readStr($s0)
 	
 	checkExit($s0)
-	process($s0)
+	mprocess($s0)
 	
 	la	$a0 res
 	printStr
 	printInt($v0)
 	j nextQ
+	
 
 exit:
 	la	$a0 end
@@ -121,7 +160,7 @@ exit:
 	la	$a0 pos
 	printStr
 	sub	$t0 $s1 $s0
-	printChar($t0)
+	printInt($t0)
 	li	$t0 '\n'
 	printChar($t0)
 	.end_macro
