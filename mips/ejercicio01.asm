@@ -87,9 +87,9 @@ nEx:
 	.macro getNum
 	subi	$t0 $s4 '0' # obtener valor numérico del código ascii
 lNum:	lb	$s4 ($s1)
+	subi	$t1 $s4 '0' # obtener valor numérico del código ascii
 	bgt	$s4 '9' numDone # no número
 	blt	$s4 '0' numDone # no número
-	subi	$t1 $s4 '0' # obtener valor numérico del código ascii
 	mulo	$t0 $t0 10
 	add	$t0 $t0 $t1
 	addi	$s1 $s1 1
@@ -100,8 +100,6 @@ numDone:
 	
 # revisa que el caracter sea válido
 	.macro checkChar(%s)
-	move	$a0 %s
-	printChar($a0)
 	beq	%s '\n' val # salto de línea, caracter que es válido
 	beq	%s ' ' val # espacio, caracter que es válido
 	beqz	%s val # \0, fin de cadena, que es válido
@@ -127,42 +125,32 @@ nCh:	lb	$s4 ($s1)
 	beq	$s4 '*' mu
 	beq	$s4 '/' di
 	getNum
-	li	$a0 'n'
-	printChar($a0)
 	j nCh
 sum:
 	pop($s2)
 	pop($s3)
-	add $t0 $s2 $s3
+	add $t0 $s3 $s2
 	push($t0)
-	li	$a0 's'
-	printChar($a0)
 	j nCh
 dif:
 	pop($s2)
 	pop($s3)
-	sub $t0 $s2 $s3
+	sub $t0 $s3 $s2
 	push($t0)
-	li	$a0 'r'
-	printChar($a0)
 	j nCh
 mu:
 	pop($s2)
 	pop($s3)
-	mulo $t0 $s2 $s3
+	mulo $t0 $s3 $s2
 	push($t0)
-	li	$a0 'm'
-	printChar($a0)
 	j nCh
 di:
 	pop($s2)
 	pop($s3)
-	div $t0 $s2 $s3
+	div $t0 $s3 $s2
 	push($t0)
-	li	$a0 'd'
-	printChar($a0)
 	j nCh
-prEnd:	pop($a0)
+prEnd:	pop($s6)
 	tne	$sp $s7
 	.end_macro
 	
@@ -190,6 +178,7 @@ nextQ:	la	$a0 inst
 	
 	la	$a0 res
 	printStr
+	move	$a0 $s6
 	printInt($a0)
 	li	$a0 '\n' # \n
 	printChar($a0)
