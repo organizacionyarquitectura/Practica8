@@ -55,9 +55,9 @@
 # Revisa si la cadena en %s es "exit".
 # Termina la ejecución en ese caso	
 	.macro checkExit(%s)
-	lw	$t0 (%s)
+	lb	$t0 (%s)
 	la	$t1 exStr
-	lw	$t1 ($t1)
+	lb	$t1 ($t1)
 nCh:	beqz	$t0 chEnd
 	bne	$t0 $t1 nEx
 	addi	$t0 $t0 1
@@ -84,7 +84,7 @@ nEx:
 	.macro getNum
 	subi	$t0 $s4 48 # obtener valor numérico del código ascii
 	addi	$s1 $s1 1
-lNum:	lw	$s4 ($s1)
+lNum:	lb	$s4 ($s1)
 	bge	$s4 58 numDone # no número
 	ble	$s4 47 numDone # no número
 	subi	$t1 $s4 48 # obtener valor numérico del código ascii
@@ -98,11 +98,13 @@ numDone:
 	
 # revisa que el caracter sea válido
 	.macro checkChar(%s)
-	beq	%s 32, val # espacio, caracter que es válido
+	beq	%s '\n' val # salto de línea, caracter que es válido
+	beq	%s ' ' val # espacio, caracter que es válido
+	beqz	%s val # \0, fin de cadena, que es válido
 	tgei	%s 58 # caracter no válido, fuera de rango
 	tlti	%s 42 # caracter no válido, fuera de rango
-	teqi	%s 44 # ´ 
-	teqi	%s 47 # /
+	teqi	%s '´' # ´ 
+	teqi	%s '/' # /
 val:
 	.end_macro
 
@@ -110,7 +112,7 @@ val:
 	.macro proccess(%s)
 	move	$s1 %s
 	move	$s7 $sp
-nCh:	lw	$s4 ($s1)
+nCh:	lb	$s4 ($s1)
 	beqz	$s4 prEnd
 	checkChar($s4)
 	addi	$s1 $s1 1
@@ -188,7 +190,7 @@ exit:
 	printInt($s2)
 	printChar($s4)
 	printInt($s3)
-	li	$t0 '\n'
+	li	$t0 '\n' # \n
 	printChar($t0)
 	.end_macro
 	
@@ -201,7 +203,7 @@ exit:
 	printStr
 	sub	$t0 $s1 $s0
 	printInt($t0)
-	li	$t0 10 # \n
+	li	$t0 42 # \n
 	printChar($t0)
 	.end_macro
 
@@ -229,6 +231,7 @@ pos:	.asciiz "Posición: "
 	beq	$k0 13 invalid # Exepción por expresión inválida
 	
 # Otro tipo de exepciones son ignoradas
+	printInt($k0)
 	j	resume
 
 # Exepción por desbordamiento
