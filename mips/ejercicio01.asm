@@ -55,13 +55,16 @@
 # Revisa si la cadena en %s es "exit".
 # Termina la ejecución en ese caso	
 	.macro checkExit(%s)
-	lb	$t0 (%s)
-	la	$t1 exStr
-	lb	$t1 ($t1)
+	move	$t2 %s
+	lb	$t0 ($t2)
+	la	$t3 exStr
+	lb	$t1 ($t3)
 nCh:	beqz	$t0 chEnd
 	bne	$t0 $t1 nEx
-	addi	$t0 $t0 1
-	addi	$t1 $t0 1
+	addi	$t2 $t2 1
+	lb	$t0 ($t2)
+	addi	$t3 $t3 1
+	lb	$t1 ($t3)
 	j nCh
 chEnd:	beqz	$t1 exit
 nEx:	
@@ -70,24 +73,23 @@ nEx:
 # operaciones con la pila
 
 	.macro push(%s)
-	addi	$sp $sp 4
 	sw	%s ($sp)
+	addi	$sp $sp 4
 	.end_macro
 	
 	.macro pop(%s)
-	teq	$sp $s7
-	lw	%s ($sp)
 	subi	$sp $sp 4
+	tlt	$sp $s7
+	lw	%s ($sp)
 	.end_macro
 # parseo de números
 # parsea el número si es posible, y lo agrega a la pila
 	.macro getNum
-	subi	$t0 $s4 48 # obtener valor numérico del código ascii
-	addi	$s1 $s1 1
+	subi	$t0 $s4 '0' # obtener valor numérico del código ascii
 lNum:	lb	$s4 ($s1)
-	bge	$s4 58 numDone # no número
-	ble	$s4 47 numDone # no número
-	subi	$t1 $s4 48 # obtener valor numérico del código ascii
+	bgt	$s4 '9' numDone # no número
+	blt	$s4 '0' numDone # no número
+	subi	$t1 $s4 '0' # obtener valor numérico del código ascii
 	mulo	$t0 $t0 10
 	add	$t0 $t0 $t1
 	addi	$s1 $s1 1
@@ -98,13 +100,15 @@ numDone:
 	
 # revisa que el caracter sea válido
 	.macro checkChar(%s)
+	move	$a0 %s
+	printChar($a0)
 	beq	%s '\n' val # salto de línea, caracter que es válido
 	beq	%s ' ' val # espacio, caracter que es válido
 	beqz	%s val # \0, fin de cadena, que es válido
 	tgei	%s 58 # caracter no válido, fuera de rango
 	tlti	%s 42 # caracter no válido, fuera de rango
-	teqi	%s '´' # ´ 
-	teqi	%s '/' # /
+	teqi	%s '´'
+	teqi	%s '.'
 val:
 	.end_macro
 
@@ -116,34 +120,49 @@ nCh:	lb	$s4 ($s1)
 	beqz	$s4 prEnd
 	checkChar($s4)
 	addi	$s1 $s1 1
-	beq	$s4 43 sum # +
-	beq	$s4 45 dif # -
-	beq	$s4 42 mu # *
-	beq	$s4 47 di # /
+	beq	$s4 '\n' nCh # salto de línea, ignorar
+	beq	$s4 ' ' nCh # espacio, ignorar
+	beq	$s4 '+' sum
+	beq	$s4 '-' dif
+	beq	$s4 '*' mu
+	beq	$s4 '/' di
 	getNum
+	li	$a0 'n'
+	printChar($a0)
 	j nCh
 sum:
 	pop($s2)
 	pop($s3)
 	add $t0 $s2 $s3
 	push($t0)
+	li	$a0 's'
+	printChar($a0)
+	j nCh
 dif:
 	pop($s2)
 	pop($s3)
 	sub $t0 $s2 $s3
 	push($t0)
+	li	$a0 'r'
+	printChar($a0)
+	j nCh
 mu:
 	pop($s2)
 	pop($s3)
 	mulo $t0 $s2 $s3
 	push($t0)
+	li	$a0 'm'
+	printChar($a0)
+	j nCh
 di:
 	pop($s2)
 	pop($s3)
 	div $t0 $s2 $s3
 	push($t0)
+	li	$a0 'd'
+	printChar($a0)
 	j nCh
-prEnd:	pop($v0)
+prEnd:	pop($a0)
 	tne	$sp $s7
 	.end_macro
 	
@@ -153,7 +172,7 @@ bienv:	.asciiz "Calculadora posfija\n"
 inst:	.asciiz "Ingrese algo\n"
 end:	.asciiz "Terminando programa\n"
 res:	.asciiz "Resultado: \n"
-exStr:	.ascii "exit"
+exStr:	.asciiz "exit\n"
 buff:	.space 101
 	
 # cadigo de la calculadora
@@ -171,14 +190,16 @@ nextQ:	la	$a0 inst
 	
 	la	$a0 res
 	printStr
-	printInt($v0)
+	printInt($a0)
+	li	$a0 '\n' # \n
+	printChar($a0)
 	j nextQ
 	
 
 exit:
 	la	$a0 end
 	printStr
-	li	$a0 10
+	li	$v0 10
 	syscall
 	
 # macros especiales para el manejo de exepciones
@@ -187,24 +208,35 @@ exit:
 	.macro printCurrentOp
 	la	$a0 op
 	printStr
-	printInt($s2)
-	printChar($s4)
-	printInt($s3)
-	li	$t0 '\n' # \n
-	printChar($t0)
+	move	$a0 $s2
+	printInt($a0)
+	move	$a0 $s4
+	printChar($a0)
+	move	$a0 $s3
+	printInt($a0)
+	li	$a0 '\n' # \n
+	printChar($a0)
 	.end_macro
 	
 # imprime el caractér leído y su posición cuando ocurrió la exepción
 	.macro printInfoChar
 	la	$a0 char
 	printStr
-	printChar($s4)
+	move	$a0 $s4
+	printChar($a0)
+	li	$a0 '\n' # \n
+	printChar($a0)
+	li	$a0 ' '
+	printChar($a0)
+	move	$a0 $s4
+	printInt($a0)
 	la	$a0 pos
 	printStr
 	sub	$t0 $s1 $s0
-	printInt($t0)
-	li	$t0 42 # \n
-	printChar($t0)
+	move	$a0 $t0
+	printInt($a0)
+	li	$a0 '\n' # \n
+	printChar($a0)
 	.end_macro
 
 # Variables utilizadas en manejo de exepciones
@@ -231,7 +263,8 @@ pos:	.asciiz "Posición: "
 	beq	$k0 13 invalid # Exepción por expresión inválida
 	
 # Otro tipo de exepciones son ignoradas
-	printInt($k0)
+	move	$a0 $k0
+	printInt($a0)
 	j	resume
 
 # Exepción por desbordamiento
